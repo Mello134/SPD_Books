@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- css bootstrap 5 -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+	<title>майн апп</title>
+
+	<!-- css bootstrap 5 -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+	<!-- vue.js - -->
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.7.8/dist/vue.js"></script>
+
+	<!-- axios cdn -->
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+</head>
+<body>
+	
+<!-- внтри verbatim - django рендерить не будет
+потому что {{ js }} , такжеделает и djnago {{ django }} -->
+
+{% verbatim %}
+<div class="container" id="orders_app">
+	
+
+	<!-- v-for="order in orders - это цикл for -->
+	<div class="btn btn-success btn-lg" v-for="order in orders">
+		
+		Наименование: {{ order.description }}
+		<br>
+		Цена: {{ order.amount }}
+
+	</div>
+
+
+</div>
+{% endverbatim %}
+
+
+
+
+	<script src="/static/app.js"></script>
+</body>
+</html>

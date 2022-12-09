@@ -14,9 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include, re_path
 from rest_framework.routers import SimpleRouter  # маршрутизатор rest
-from store.views import BookViewSet  # наше представление api
+from store.views import BookViewSet, my_auth  # наше представление api
 
 # создали переменную роутер
 router = SimpleRouter()
@@ -27,6 +27,8 @@ router.register(r'book', BookViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    re_path('', include('social_django.urls', namespace='social')),
+    path('auth/', my_auth, name='my_auth'),
 ]
 
 # добавляем в urlpatterns, url-ы нашего роутера
