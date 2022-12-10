@@ -1,7 +1,7 @@
 from django.shortcuts import render  # обычный render - нам больше не нужен
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.viewsets import ModelViewSet
 from store.models import Book
 from store.serializers import BookSerializer
@@ -11,8 +11,8 @@ from store.serializers import BookSerializer
 class BookViewSet(ModelViewSet):
     queryset = Book.objects.all()  # объекты нашей модели
     serializer_class = BookSerializer  # наш сериализатор
-    # только авторизованные пользователи могут пользоваться представлением
-    permission_classes = [IsAuthenticated]
+    # только авторизованные пользователи могут изменять записи - а смотреть могут все
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]  # django-filter
     # для фильтра в url  - ?price=1000
