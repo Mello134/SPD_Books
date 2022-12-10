@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 
 
@@ -8,6 +9,9 @@ class Book(models.Model):
     # decimal_places=2 - два числа после запятой
     price = models.DecimalField(verbose_name='Цена книги', max_digits=7, decimal_places=2)
     author_name = models.CharField(verbose_name='Автор книги', max_length=255)
+    # owner - владелец
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL,
+                              null=True)
 
     class Meta:
         verbose_name = 'Книги'

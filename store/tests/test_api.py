@@ -16,7 +16,8 @@ class BooksApiTestCase(APITestCase):
         self.user = User.objects.create(username='test_username')
 
         # вводные данные
-        self.book_1 = Book.objects.create(name='Test book 1', price=25, author_name='Автор 1')
+        self.book_1 = Book.objects.create(name='Test book 1', price=25,
+                                          author_name='Автор 1', owner=self.user)
         self.book_2 = Book.objects.create(name='Test book 2', price=50, author_name='Автор 2')
         self.book_3 = Book.objects.create(name='Test book 3 Автор 1', price=75, author_name='Автор 1')
 
@@ -88,7 +89,7 @@ class BooksApiTestCase(APITestCase):
         # преобразуем наши данные в формат json
         json_data = json.dumps(data)
 
-        # сделаем авторизацию, так как сейчас мы ограничели доступ
+        # сделаем авторизацию, так как сейчас мы ограничили доступ
         self.client.force_login(self.user)
 
         # проверяемые данные, post запрос
@@ -100,6 +101,10 @@ class BooksApiTestCase(APITestCase):
 
         # сравниваем количество книг, ожидаем 4
         self.assertEqual(4, Book.objects.all().count())
+
+        # сравниваем поле owner (инфа владельца)
+        # сравниваем текущий пользователь = запись о владельце модели Book
+        self.assertEqual(self.user, Book.objects.last().owner)
 
     def test_put_update(self):
         # book-list - получение всего списка router.register(r'book', BookViewSet)
@@ -121,7 +126,7 @@ class BooksApiTestCase(APITestCase):
 
         # проверяемые данные, post запрос
         response = self.client.put(url, data=json_data,
-                                    content_type='application/json')
+                                   content_type='application/json')
 
         # Ожидаем страницу статус=200, сравниваем с ответным кодом
         self.assertEqual(status.HTTP_200_OK, response.status_code)
@@ -132,3 +137,48 @@ class BooksApiTestCase(APITestCase):
         # проверяем изменилась ли цена
         self.assertEqual(1500, self.book_1.price)
 
+    # сценарий когда не владелец книги пытается изменить данные книги
+    def test_put_update_not_owner(self):
+        # это будет не владелец книги
+        self.user2 = User.objects.create(username='test_username2')
+        url = reverse('book-detail', args=(self.book_1.id,))
+        data = {"name": self.book_1.name,
+                "price": 1500,
+                "author_name": self.book_1.author_name
+                }
+        json_data = json.dumps(data)
+        # авторизация не владельца книги
+        self.client.force_login(self.user2)
+        # проверяемые данные, post запрос
+        response = self.client.put(url, data=json_data,
+                                   content_type='application/json')
+        # Ожидаем страницу статус=403 - запрет доступа, сравниваем с ответным кодом
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+        # перезаписываем данные изменённой книги 1
+        self.book_1.refresh_from_db()
+        # проверяем изменилась ли цена - ожидаем что изменения не произойдёт
+        self.assertEqual(25, self.book_1.price)
+
+    # сценарий когда не владелец книги пытается изменить данные книги
+    def test_put_update_not_owner_but_staff(self):
+        # это будет не владелец книги, но админ
+        self.user2 = User.objects.create(username='test_username2',
+                                         is_staff=True)
+        url = reverse('book-detail', args=(self.book_1.id,))
+        data = {"name": self.book_1.name,
+                "price": 1500,
+                "author_name": self.book_1.author_name
+                }
+        json_data = json.dumps(data)
+        # авторизация не владельца книги
+        self.client.force_login(self.user2)
+        # проверяемые данные, post запрос
+        response = self.client.put(url, data=json_data,
+                                   content_type='application/json')
+        # Ожидаем страницу статус=200 - всё ок, сравниваем с ответным кодом
+        # 200 - потому что изменяет админ и должно получится
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        # перезаписываем данные изменённой книги 1
+        self.book_1.refresh_from_db()
+        # проверяем изменилась ли цена - ожидаем что изменилось
+        self.assertEqual(1500, self.book_1.price)
