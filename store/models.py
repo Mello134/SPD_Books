@@ -15,6 +15,8 @@ class Book(models.Model):
     # читатель - много читателей
     readers = models.ManyToManyField(User, through='UserBookRelation',
                                      related_name='read_books', verbose_name='Читатели')
+    # рейтинг 3.68
+    rating = models.DecimalField(max_digits=3, decimal_places=2, default=None, null=True)
 
     class Meta:
         verbose_name = 'Книги'
@@ -53,5 +55,24 @@ class UserBookRelation(models.Model):
 
     def __str__(self):
         return f'Пользователь:{self.user.username} - Книга:{self.book.name}, Рейтинг:{self.rate}'
+
+    def save(self, *args, **kwargs):
+        # локальный импорт
+        from store.logic import set_rating
+
+        creating = not self.pk
+        old_rating = self.rate
+
+        # через super - мы обращаемся к родительскому элементу Models
+        # чтобы не сломать стандартные поля
+        # делаем super -чтобы наш def save тоже вызвался
+        super().save(*args, **kwargs)
+
+        new_rating = self.rate
+
+        # если old - не как - new, будем делать пересчёт
+        if old_rating != new_rating or creating:
+            set_rating(self.book)
+
 
 

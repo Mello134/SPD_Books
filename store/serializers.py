@@ -15,7 +15,7 @@ class BookSerializer(ModelSerializer):
     # поле количество лайков через annotated
     annotated_likes = serializers.IntegerField(read_only=True)
     # рейтинг по типу 1.77, 4,50, 3,93
-    rating = serializers.DecimalField(max_digits=3, decimal_places=2, )
+    rating = serializers.DecimalField(max_digits=3, decimal_places=2)
     # имя владельца
     # read_only=True - поле только для чтение
     owner_name = serializers.CharField(source='owner.username', default='',

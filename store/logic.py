@@ -1,8 +1,13 @@
+from django.db.models import Avg
+from store.models import UserBookRelation
 
-def operations(a, b, c):
-    if c == '+':
-        return a + b
-    if c == '-':
-        return a - b
-    if c == '*':
-        return a * b
+
+# получение рейтинга
+def set_rating(book):
+    # book - это определённая книга
+    # aggregate - сами расчёты
+    # class(models.py) UserBookRelation/ rate это поле - UserBookRelation
+    rating = UserBookRelation.objects.filter(book=book).aggregate(rating=Avg('rate')).get('rating')
+    # записываем в поле rating- переменную rating
+    book.rating = rating
+    book.save()  # сохраняем книгу
