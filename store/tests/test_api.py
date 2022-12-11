@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.auth.models import User
+from django.db.models import Count, Case, When, Avg
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -29,11 +30,18 @@ class BooksApiTestCase(APITestCase):
         # self.client - например клиент/браузер - который делает запрос нашему серверу
         response = self.client.get(url)
 
+        # проверяемые данные
+        books = Book.objects.all().annotate(
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
+            rating=Avg('userbookrelation__rate'),
+        ).order_by('id')
+
+        # сравниваем то что вводные данные сходятся с выходными
+        serializer_data = BookSerializer(books, many=True).data
+
         # Ожидаем страницу статус=200, сравниваем с ответным кодом
         self.assertEqual(status.HTTP_200_OK, response.status_code)
 
-        # сравниваем то что вводные данные сходятся с выходными
-        serializer_data = BookSerializer([self.book_1, self.book_2, self.book_3], many=True).data
         # serializer_data - входные данные, response.data - выходные данные
         # Мы ожидаем что должно быть serializer_data, и проверяем равен ли ей response.data
         self.assertEqual(serializer_data, response.data)
@@ -48,10 +56,17 @@ class BooksApiTestCase(APITestCase):
 
         # условия поиска
         response = self.client.get(url, data={'search': 'Автор 1'})
+
+        # проверяемые данные
+        books = Book.objects.filter(id__in=[self.book_1.id, self.book_3.id]).annotate(
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
+            rating=Avg('userbookrelation__rate'),
+        ).order_by('id')
+
+        serializer_data = BookSerializer(books, many=True).data
+
         # Ожидаем страницу статус=200, сравниваем с ответным кодом
         self.assertEqual(status.HTTP_200_OK, response.status_code)
-        serializer_data = BookSerializer([self.book_1,
-                                          self.book_3], many=True).data
         # Мы ожидаем что должно быть serializer_data, и проверяем равен ли ей response.data
         self.assertEqual(serializer_data, response.data)
 
@@ -277,13 +292,7 @@ class BooksRelationTestCase(APITestCase):
         # Ожидаем страницу статус=200, сравниваем с ответным кодом
         # третий аргумент - если что-то не сошлось (какой сделать принт)
         # то есть 3-й аргумент скажет, почему не вышло получить 200
-        self.assertEqual(status.HTTP_200_OK, response.status_code, response.data)
+        self.assertEqual(status.HTTP_400_BAD_REQUEST, response.status_code, response.data)
 
-        # отношение каким пользователем какой книге поставит рейтинг
-        relation = UserBookRelation.objects.get(user=self.user,
-                                                book=self.book_1)
-
-        # ожидаем что рейтинг будет 5 (то есть он не изменится с прошлого теста, так как 6 не может быть)
-        self.assertEqual(5, relation.rate)
 
 

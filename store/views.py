@@ -1,3 +1,4 @@
+from django.db.models import Count, Case, When, Avg
 from django.shortcuts import render  # обычный render - нам больше не нужен
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -11,7 +12,12 @@ from store.serializers import BookSerializer, UserBookRelationSerializer
 
 # ModelViewSet - родительский класс
 class BookViewSet(ModelViewSet):
-    queryset = Book.objects.all()  # объекты нашей модели
+    # объекты
+    queryset = Book.objects.all().annotate(
+            annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
+            rating=Avg('userbookrelation__rate'),
+        ).order_by('id')
+
     serializer_class = BookSerializer  # наш сериализатор
     # только авторизованные пользователи и владельцы могут изменять записи - а смотреть могут все
     permission_classes = [MyIsOwnerOrStaffOrReadOnly]
