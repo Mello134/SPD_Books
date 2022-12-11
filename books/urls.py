@@ -16,13 +16,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from rest_framework.routers import SimpleRouter  # маршрутизатор rest
-from store.views import BookViewSet, my_auth  # наше представление api
+from store.views import BookViewSet, my_auth, UserBooksRelationView  # наше представление api
 
 # создали переменную роутер
 router = SimpleRouter()
 
 # в роутер добавим наше представление
 router.register(r'book', BookViewSet)
+router.register(r'book_relation', UserBooksRelationView)
 
 
 urlpatterns = [
