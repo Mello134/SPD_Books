@@ -10,13 +10,18 @@ from store.serializers import BookSerializer
 class BookSerializerTestCase(TestCase):
     def test_ok(self):
         # вводные данные
-        user1 = User.objects.create(username='username1')
-        user2 = User.objects.create(username='username2')
-        user3 = User.objects.create(username='username3')
+        user1 = User.objects.create(username='user1',
+                                    first_name='Ivan', last_name='Petrov')
+        user2 = User.objects.create(username='user2',
+                                    first_name='Alex', last_name='Morozov')
+        user3 = User.objects.create(username='user13',
+                                    first_name='Oleg', last_name='Oleg')
         book_1 = Book.objects.create(name='Test book 1', price=25,
-                                     author_name='Author 1')
+                                     author_name='Author 1',
+                                     owner=user1)
         book_2 = Book.objects.create(name='Test book 2', price=50,
-                                     author_name='Author 2')
+                                     author_name='Author 2',
+                                     owner=user2)
 
         # все пользователи поставили лайк на первую книгу, и поставили рейтинг 5
         UserBookRelation.objects.create(user=user1, book=book_1, like=True,
@@ -51,18 +56,46 @@ class BookSerializerTestCase(TestCase):
                 'name': 'Test book 1',
                 'price': '25.00',
                 'author_name': 'Author 1',
-                'likes_count': 3,  # будем ожидать 3 лайка
                 'annotated_likes': 3,  # будем ожидать 3 лайка
                 'rating': '5.00',
+                'owner_name': 'user1',
+                'readers': [
+                    {
+                        'first_name': 'Ivan',
+                        'last_name': 'Petrov',
+                    },
+                    {
+                        'first_name': 'Alex',
+                        'last_name': 'Morozov',
+                    },
+                    {
+                        'first_name': 'Oleg',
+                        'last_name': 'Oleg',
+                    },
+                ]
             },
             {
                 'id': book_2.id,
                 'name': 'Test book 2',
                 'price': '50.00',
                 'author_name': 'Author 2',
-                'likes_count': 2,  # будем ожидать 2 лайка
                 'annotated_likes': 2,  # будем ожидать 2 лайка
                 'rating': '3.50',
+                'owner_name': 'user2',
+                'readers': [
+                    {
+                        'first_name': 'Ivan',
+                        'last_name': 'Petrov',
+                    },
+                    {
+                        'first_name': 'Alex',
+                        'last_name': 'Morozov',
+                    },
+                    {
+                        'first_name': 'Oleg',
+                        'last_name': 'Oleg',
+                    },
+                ]
             },
         ]
 
